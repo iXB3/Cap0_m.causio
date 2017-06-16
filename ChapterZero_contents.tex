@@ -1,0 +1,463 @@
+% !TEX root = thesis.tex
+%\renewcommand*\thesection{\arabic{section}}
+
+\chapter*{Chapter Zero} \setcounter{page}{1}
+\markboth{Introduction}{Introduction}
+\addcontentsline{toc}{chapter}{Chapter Zero}  
+
+\section{Introduction}
+This thesis focus on the artificial neural networks, a new, exploiting approch to construct algorithms that can implement various difficult tasks.\\
+The most important feature of this approach is that it produces algorithms belonging to the family of "machine learning" algorithms; here a definition of machine learning provided by Tom M. Mitchell:\\
+"A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P if its performance at tasks in T, as measured by P, improves with experience E."\\
+In other words this kind of programs can be trained to perform tasks providing them experience, or examples; the importance of this specific aspect is that some tasks such as pattern recognition, that are so easly performed by us (humans), but are so difficult to be implemented in a classical way of static and programmed instructions; these difficulties can be avoided using machine learning. Specifically artificial neural networks provide a framework to implement a function from the inputs to the outputs, where many parameters are free to change and, during training, they will be adjusted by a specific algorithm in a way to reduce the difference between the outputs and the expected solutions of the task.\\
+In this Chapter Zero we will approach the fundamental aspects and techniques of this field; in the first section we will introduce the concept of artificial neuron, the basic computational unit of the artificial neural networks; in the second section we will see how that neurons are organized and interconnected to form network with various architectures; in the third section we will take on the training phase and all its most important aspects, including techniques to solve some problems on fitting data; in the fourth section we will have a little view of some concepts of probability theory needed to deal with the last section, a discussion on theory that use the Bayesian inference on neural networks in order to acquire some quantitative informations helpful in choosing some characteristics of the model.
+
+\newpage
+\section{Artificial Neuron} 
+
+\begin{defn}
+ An \emph{artificial neuron} is a computational unit with the following parameters:
+ \begin{itemize}
+  \item $b \in \mathbb{R}$ is called \emph{bias};
+  \item $\bar{w}=(w_1,..,w_n) \in \mathbb{R}^n$ is the \emph{weight vector} associated to the \emph{input vector} $\bar{x}=(x_1,...,x_n) \in \mathbb{R}^n$;
+  \item $ *\Idots:\mathbb{R}^{(n+1)\times(n+1)}\rightarrow\mathbb{R} $ an operation between the vectors $\bar{w}^*=(b,\bar{w})$ and $\bar{x}^*=(1,\bar{x})$
+  \item $\varphi : \mathbb{R} \rightarrow I \subset \mathbb{R}$ the \emph{activation function}.
+\end{itemize}
+It takes the $n$ input values $x_1,...,x_n\in\mathbb{R}$ and outputs the value $y=\varphi(\bar{w}^* *\Idots \bar{x}^*)=\varphi(v)$.
+\end{defn}
+
+\subsection{Activation function}
+
+There are many possibilities to choose the Activation function; different choise implies different behavior of the corresponding artificial neuron.
+Here some example of the most widely utilized Activation function:
+\begin{itemize}
+ \item Heaviside function $\varphi(v)=\begin{cases} 1 &  \mbox{ if } v \geq 0 \\ 0 & \mbox{otherwise} \end{cases} \in \{ 0,1 \} $  \\
+An artificial neuron with such Activation function is called Threasold Logical Unit (TLU),the first model of artificial neuron, proposed by McCulloch and Pitts in 1943[1].
+\item Sign function $\varphi(v)= sign(v)=\begin{cases} 1 &  \mbox{ if } v \geq 0 \\ -1 & \mbox{otherwise} \end{cases} \in \{ -1,1 \} $ \\
+Employed in Perceptron, the first model of artificial network able to learn, proposed by Frank Rosenblatt[2].
+\item Sigmoid function $\varphi(v)= \frac{1}{1+ e^{v}} \in [ 0,1 ]$ \\
+Utilized for the simplicity of the calculation of its derivate; a useful feature for the training procedure, how we will see later. \\
+An artificial neuron with this activation function is called Sigmoid neuron.
+\item Gaussian function $\varphi(v)=\frac{1}{2 \pi \sigma} \cdot e^{ -\frac{(v-\mu)^2}{2 \sigma^2}}$  with parameters $\sigma, \mu \in \mathbb{R}$ 
+\item Hyperbolic tangent function $\varphi(v)=tanh(v)$\\
+Similar in shape to the sigmoid function but reaches values in $[0,1]$.
+\end{itemize}
+\newpage
+\section{Artificial Neural Network}
+
+\begin{defn}
+An \emph{Artificial Neural Network} (ANN)  is a network made up by artificial neurons interconnected where every neuron takes as inputs the outputs of some other neurons or the inputs of the whole ANN; it can have more than one output.
+\end{defn}
+
+A tipycal way to organize the structure of an ANN's is to divide the neurons in layers.  
+There are three types of layer:
+\begin{itemize}
+\item \emph{Input layer}  is where the inputs of the network comes from; it is an hypotethical layer with a unit for each input of the network, these units don't do any computational job since their sole purpose is to represent the values of the inputs;
+\item \emph{Output layer} is the last layer of the network, the output of the neurons in this layer are the outputs of the whole network;
+\item \emph{Hidden layer} is an intermediate layer between input and output layer.
+\end{itemize}
+{}\\
+In a such organization in layers is useful to use a tensor notation; we will use the following one:
+	\begin{itemize}
+	\item $L-1$ is the number of hidden layers;
+	\item $X$ is the input tensor of the network;
+	\item $W^i=\{\bar{w}^i_j\}_j$ is the weight tensor of the i-th layer, where $\bar{w}^i_j$ is the weight vector of the j-th neuron of that layer;
+	\item $\varphi_i$ is the activation function of the units in the i-th layer;
+	\item $Z^i$ is the output tensor of the i-th layer;
+	\item $Y$ is the output vector computed by the network.
+\end{itemize}
+
+There are two types of Network:
+\begin{itemize}
+	\item \emph{Feed-Forward} : the computational flow can go only in one direction, the inputs of any neuron are the outputs of some neurons belonging to the previous layer. This ensure that the network outputs can be calculated as explicit functions of the inputs and the weights.\\
+	\item \emph{Recurrent (RNN)} : it contains at least one backward connection, in other words there is at least a neuron that has at least an input that comes from a neuron not belonging to a previous layer; the computational flow can form cycles and this enable the network to have an internal state, a kind of memory.\\
+\end{itemize}
+
+
+An ANN can be either a single layer or multilayer network.
+
+
+\subsection{Single Layer Network}
+
+\begin{defn}
+A \emph{Single Layer Network} is an ANN composed just by an input layer and an output layer.
+\end{defn}
+
+
+The first and simplest single layer feed-forward network was "Perceptron", developed by Frank Rosenblatt in 1958[2]
+\begin{defn}
+	\emph{Perceptron} is a single layer network made up just by one artificial neuron with sign function as activation function and matricial products as operation $ *\Idots$ between the vectors $\bar{w}^*$ and $\bar{x}^*$
+	It takes n input values and outputs a single binary value $y(\bar{x}) \in \{-1,1\}$.
+\end{defn}
+{}\\
+The computation of a Perceptron, using the vector notation, is the following:
+$$sign(v)=sign(\bar{w}^* \times {}^T\bar{x}^*)=sign(b+ \sum_{i=1}^d w_i \cdot x_i) = $$
+$$=\begin{cases} 0 & if {} \sum_{i=1}^d w_i \cdot x_i<b \\ 1 & otherwise \end{cases}$$
+
+It is a binary classifier that can divide input data from an n-dimensional space in two linearly separable regions. As example it can implement the boolean function AND setting the weight vector $\bar{w}=(2,1,1)$ and OR setting the weight vector $\bar{w}=(1,1,1)$. But it is been proved by Marvin Minsky and Seymour Papert in [3] that it can't implement some function such as the boolean function XOR, that is not linearly separable. \\
+By this limitation comes the needing of more complex structures.\\
+But the most important feature of the Perceptron comes from the fact that it can learn from examples thanks to a Learning algorithm, how we will discuss later.\\
+
+Generally single layer feed-foward networks with threashold activation functions, such as sign and Heaviside functions, can divide input data from an $n$-dimensional space in $m$ simply connected and convex regions, where $n$ is the number of units in the input layer and $m$ in the number of neurons in the output layer.\\
+It is achieved corresponding for every region $R_i$ the output of the i-th neuron: if $y_k(\bar{x})>y_i(\bar{x}) \forall i\neq k$ the input vector $\bar{x}$ will be assigned to the region $R_k$.\\
+A more detailed discussion can be found in [6].
+
+	
+\subsection{Multilayer Network}
+
+Multilayer ANN's can implement more  and more powerful tasks than a single layer network, like function approssimation, pattern recognition, speech and handwritten recognition, image classification.
+
+\begin{defn}
+	A \emph{Multilayer network} with L layers is an ANN that has $L-1$ hidden layers between its input and output layers.
+\end{defn}
+
+If the ANN is a feed forward network, we can write down in an explicit form the computation made by the ANN on the input values.\\
+For a multilayer network with L layer, using the notation defined above, we have this iterative form:
+
+$$\begin{cases} Z^0=X \\
+ Z^i=(\varphi_i(\bar{w}^i_1 \times {}^TZ^{(i-1)}),...,\varphi_i(\bar{w}^i_k} \times {}^TZ^{(i-1)} )) \\
+ Y(X)=Z^L \end{cases}$$
+
+We shall view feed-forward neural networks as providing a general framework for  representing non-linear functional mappings between a set of input variables and a set of output variables. This is achieved by representing the non-linear function of many variables in terms of compositions of non-linear functions of a single variable.\\
+
+Follow some results about what jobs can be implement by some specified architectures of multilayer ANN:\\
+
+
+\begin{theo}
+	A 2-layer ANN made up by Threashold Logical Units that keeps binary values as input can implement any Boolean function, provided sufficiently large number of hidden units. 
+\end{theo}
+(McCulloch-Pitts, 1943)[1]
+{}\\
+ 
+\begin{theo}
+	A 3-layer ANN made up by Threashold Logical Units that takes real values as input can divide them into arbitrary regions which  may  be  non-convex  and  disjoint.
+\end{theo}
+(Lippmann, 1987)[4]
+{}\\
+
+\begin{theo}
+	A  neural network can approximate functions  from $\mathbb{R}^n$ to $\mathbb{R}^m$ with only two hidden layers, and that the accuracy of the approximation is controlled by the number of neurons in each layer.
+\end{theo}
+(Lapedes-Farber, 1988)[5]
+
+\newpage
+\section{Training}
+The most important feature of ANN's is the ability to learn a specific task by a training: providing a \emph{Learning algorithm} and some examples, or \emph{dataset}, is possible to tune the parameters of the network in a way to achieve with a certain accuracy that task.
+
+\begin{defn}
+A \emph{Learning algorithm} is an algorithm to adjust the weights and the bias of the artificial neurons in the ANN.
+\end{defn}
+
+A learning algorithm implies the choice of an \emph{Error function} to measure the correctness of the output of the network and an optimization algorithm to calculate the adjustment of the parameters of the network.
+
+
+
+
+\begin{defn}
+	A \emph{Data set} is a sequence  $\{ X(t) \}_{t \in T}$ (unsupervised learning) or a sequence $\{X(t), \Theta(t)\}_{t \in T}$ (supervised learning) ,where $\bar{x}(t) \in \mathbb{R}^n $ is the t-th input vector and $\Theta(t) \in \mathbb{R}^m$ is the expected outputs vector, or \emph{target}, relative to $X(t)$.
+\end{defn}
+
+\begin{defn}
+A \emph{Training set} is a data set utilized to train an ANN with a learning algorithm.\\
+A learning algorithm is applied to adjust the weight vector $\bar{w}$ depending on the value of an error function.
+\end{defn}
+
+\begin{defn}
+A \emph{Validation set} is a data set utilized to tune some characteristics in the architecture of an ANN, called \emph{hypermarameters}, such as  the number of hidden layers and hidden nodes, or to choose between different models.
+\end{defn}
+
+\begin{defn}
+A \emph{Test set} is a data set utilized to evaluate the performance of an ANN.
+\end{defn}
+
+Sometimes training and validation set belonging to the same data set, in other words a data set is splited in two parts, usually with the rate of $70 \%$ for the training set and $30 \%$ for the validation set. This is called \emph{Holdout method}.\\
+
+
+
+There are two type of training:
+\begin{itemize}
+\item \emph{Supervised} experience a dataset containing features, but each example $X$ is also associated with a label or target $\Theta(\bar{x})$;
+
+\item \emph{Unsupervised} experience a dataset containing many features, then learn useful properties of the structure of this dataset. In the context of deep learning, we usually want to learn the entire probability distribution that generated a dataset, whether explicitly as in density estimation or implicitly for tasks like synthesis or denoising. Some other unsupervised learning algorithms perform other roles, like clustering, which consists of dividing the dataset into clusters of similar examples.
+\end{itemize}
+
+Roughly speaking, unsupervised learning involves observing several examples of a random vector $X$, and attempting to implicitly or explicitly learn the probability distribution $p(X)$, or some interesting properties of that distribution, while supervised learning involves observing several examples of a random vector $\bar{x}$ and an associated value or vector $\Theta$, and learning to predict $Y$ from $X$, usually by estimating $p(Y| X )$.\\
+Other variants of the learning paradigm are possible. For example, in semisupervised learning, some examples include a supervision target but others do not. In multi-instance learning, an entire collection of examples is labeled as containing or not containing an example of a class, but the individual members of the collection are not labeled.\\
+Some machine learning algorithms do not just experience a fixed dataset. For example, reinforcement learning algorithms interact with an environment, so there is a feedback loop between the learning system and its experiences. \\
+{}\\
+The goal of training an ANN is not to reach an extremely accuracy on processing the training set, but to have a good generalization, that is to have a good accuracy when new inputs never seen before are presented.[15]
+
+
+
+
+
+
+\subsection{Error function}
+
+Learning algorithms are based on the definition of a suitable error function \bar{E}, which is then minimized, by an optimization algorithm, with respect to the parameters of the network.
+The error function depends on the value of the outputs of the network, therefore it depends on the parameters of the network.
+Usually it is the mean of a \emph{Loss function} over the entire training set or a subset of it.
+
+
+
+\begin{defn}
+	A \emph{Loss function} $L(Y(X(t) ), \Theta(t) )$ is a function to quantify the differnce between the output $Y(X)$ of the network and the target $\Theta(t)$.
+\end{defn}
+The most common loss function is the \emph{Squared Loss function}
+$$L(Y(X(t) ), \Theta(t) )= \frac{1}{2} \parallel{(\Theta(t)-Y(X(t)) )}\parallel^2_2$$
+\subsection{Optimization  algorithms}
+During the training the error fuction calculated on the training set is minimized by an optimization algorithms in the hope that doing so will improve the performance of the network in generalization.\\
+In the context of deep learning, we sometimes gain some guarantees about optimization by restricting ourselves to functions that are either Lipschitz continuous or have Lipschitz continuous derivatives.\\
+A Lipschitz continuous function is a function whose rate of change is bounded by a Lipschitz constant $\mathfrak{L}$:
+$$\forall x, y \in \mathbb{R}^n, \exists \mathfrak{L}>0\ such\ that \parallel f(x)-f(y) \parallel = \mathfrak{L}\parallel x-y \parallel$$
+This property is useful because it allows us to quantify our assumption that a small change in the input made by an algorithm such as gradient descent will have a small change in the output. Lipschitz continuity is also a fairly weak constraint,and many optimization problems in deep learning can be made Lipschitz continuous with relatively minor modiﬁcations.[15]\\
+
+\subsubsection{Gradient Descend}
+To minimize the error function $\bar{E}$, we would like to ﬁnd the direction in which it decreases the fastest. We can do it using the directional derivative: 
+$$\min_{u,u^T u=1}\frac{\partial }{\partial {\alpha}}\bar{E}(\bar{w}+\alpha u)=\displaystyle \min_{u,u^T u=1} u^T\nabla_{\bar{w}}(\bar{E})= \min_{u,u^T u=1} \|u\|_2\|\nabla_{\bar{w}}\bar{E}\|_2 cos\theta$$
+where $u$ is the unit vector that has the same direction of the directional derivative and $\theta$ is the angle between $u$ and the gradient $\nabla_{\bar{w}}$. Substituing in $\|u\|_2=1$ and ingnoring the factor that do not depend from $u$, this simpifies to $min_u cos \theta$. In other words, the gradient points  directly uphill, and the negative gradient points directly downhill; we can decrease $\bar{E}$ by moving in the direction of the negative gradient. \\
+Gradient Descent proposes the following adjustment for the weight vector:
+$$\bar{w}'=\bar{w}-\eta \nabla_{\bar{w}}\bar{E}$$
+where $\eta$ is the \emph{learning rate}e, a positive scalar determining the size of the step. We can choose $\eta$ in several diﬀerent ways. A popular approach is to set $\eta$ to a small constant. Sometimes, we can solve for the step size that makes the directional derivative vanish. Another approach is to evaluate $\bar{E}(\bar{w}-\eta \nabla_{\bar{w}}\bar{E})$ for several values of $\eta$ and choose the one that results in the smallest error function value. This last strategy is called a \emph{line search}.\\
+Gradient descent converges when every element of the gradient is zero (or, in practice, very close to zero). In some cases, we may be able to avoid running this iterative algorithm, and just jump directly to the critical point by solving the equation $\nabla_{\bar{w}}\bar{E}=0$ for $\bar{w}$.\\
+Although gradient descent is limited to optimization in continuous spaces, the general concept of making small moves (that are approximately the best small move) towards better conﬁgurations can be generalized to discrete spaces. [15]
+
+\subsubsection{Stochastic Gradient Descend}
+A recurring problem in machine learning is that large training sets are necessary for good generalization, but valuating the gradient for large training sets are also more computationally expensive. 
+It can be avoided by the \emph{Stocastich Gradient Descend}, or \emph{SGD}, an extension of the gradient descend algorithm.
+The insight of stochastic gradient descent is that the gradient is an expectation. The expectation may be approximately estimated using a small set of samples. Speciﬁcally, on each step of the algorithm, we can sample a \emph{minibatch} of examples $\mathfrak{B}=\{\bar{x}^(1),..,\bar{x}^T' \}$ with $T'<T$ drawn uniformly from the training set. The minibatch size T' is typically chosen to be a relatively small number of examples, ranging from 1 to a few hundred. Crucially, T' is usually held ﬁxed as the training set size T grows. We may ﬁt a training set with billions of examples using updates computed on only a hundred examples. \\
+The estimate of the gradient is formed as 
+$$g=\frac{1}{m} \nabla_{\bar{w}} \sum_{i=1}^{T'} L(\bar{y}(\bar{x}(i) ), \bar{\Theta}(i))$$ 
+using examples from the minibatch . The stochastic gradient descent algorithm then follows the estimated gradient downhill:
+$$\bar{w}'=\bar{w}-\eta g$$
+where $\eta>0$ is the learning rate. [15]
+
+
+\subsubsection{Newton's Method}
+
+Sometimes Gradient descent performs poorly. This is because in one direction, the derivative increases rapidly, while in another direction, it increases slowly. Gradient descent is unaware of this change in the derivative so it does not know that it needs to explore preferentially in the direction where the derivative remains negative for longer. It also makes it diﬃcult to choose a good step size. The step size must be small enough to avoid overshooting the minimum and going uphill in directions with strong positive curvature. This usually means that the step size is too small to make signiﬁcant progress in other directions with less curvature.\\
+This issue can be resolved by using information from the Hessian matrix to guide the search.  The simplest method for doing so is known as \emph{Newton’s method}. Newton’s method is based on using a second-order Taylor series expansion to approximate $\bar{E}(\bar{w})$ near some weight vector $\bar{w}_0$:
+$$\bar{E}(\bar{w})=\bar{E}(\bar{w}_0)+(\bar{w}-\bar{w}_0)^T\nabla_{\bar{w}}\bar{E}(\bar{w}_0)+\frac{1}{2}(\bar{w}-\bar{w}_0)^T H(\bar{E}(\bar{w}_0))(\bar{w}-\bar{w}_0)$$
+If we then solve for the critical point of this function, we obtain:
+$$\bar{w}'=\bar{w}_0-H(\bar{E}(\bar{w}_0))^{-1}\nabla_{\bar{w}}\bar{E}(\bar{w}_0)$$.
+When $\bar{E}$ is a positive deﬁnite quadratic function, Newton’s method consists of applying the last equation above once to jump to the minimum of the function directly. When $\bar{E}$ is not truly quadratic but can be locally approximated as a positive deﬁnite quadratic, Newton’s method consists of applying equation multiple times. Iteratively updating the approximation and jumping to the minimum of the approximation can reach the critical point much faster than gradient descent would. This is a useful property near a local minimum, but it can be a harmful property near a saddle point. Newton’s method is only appropriate when the nearby critical point is a minimum (all the eigenvalues of the Hessian are positive), whereas gradient descent is not attracted to saddle points unless the gradient points toward them.[15] 
+
+
+\subsection{Back-Propagation}
+In order to compute the gradient of the error function with respect to all the weight vectors of the network, used by the gradient based optimization algoritmhs described above, we need an algorithm  that allows the information from the error value, calculated after the forward computation of the inputs of a training set, to then ﬂow backwards through the network,layer by layer. Such algorithm is called \emph{Back-Propagation}.\\
+It uses the chain rule to calculate the gradient in an iterative way, going backwards from the output layer to the input layer:
+$$ \nabla_Y \bar{E}= \nabla_{Z^L} \bar{E}$$
+$$\nabla_{Z^i} \bar{E}= J_{Z^i}(Z^{i+1}) \times {}^T \nabla_{Z^{i+1}} \bar{E}$$
+$$\nabla_{\bar{w}^i_j}} \bar{E}=J_{\bar{w}^i_j} (Z^i) \times {}^T \nabla_{Z^i} \bar{E}$$ 
+where i=L,...,1 (backwards) and $J_{\bar{g}}(\bar{f}(\bar{g})) \in \mathbb{R}^{h,k}$ is the Jacobian matrix to $\bar{f} \in \mathbb{R}^h$ with respect of $ \bar{g} \in \mathbb{R}^k$.\\
+The backpropagation procedure together with an optimization algorithm enable the network to update its parameters in the direction where the error function decrease with more magnitude; for this reason it ensure to find just a global minimum, not the global one. 
+Backpropagation requires that the activation function used by the artificial neurons be differentiable.
+The basics of continuous backpropagation were derived in the context of control theory by Henry J. Kelley[7] in 1960 and by Arthur E. Bryson[8] in 1961; the modern version derive from the work of Paul Werbose[9] that applied Linnainmaa's method[10], general method for automatic differentiation (AD) of discrete connected networks of nested differentiable functions. 
+\subsection{Data fitting: Underfitting and Overfitting}
+
+An error fuction is useful to determine how a model is fitting some data.\\
+There are two main problems on fitting data: \emph{Underfitting} and \emph{Overfitting}
+
+ \begin{defn}
+	A model is prone to\emph{underfitting} if it performs poorly on data.
+ \end{defn} 
+
+An underfitted model is unable to approximate with enough accuracy the distribution function underlying the data.
+%Specifically, underfitting occurs if the model shows low variance but high bias.
+Underfitting is often a result of a too simple model, in other words it have not enough parameters, or when it need more training example to capture the relationship between the input values and the target values.\\
+It can be prevented by increasing the model parameters, by changing its architecture,by increasing the training phase using more epochs or by increasing the training example using data augmentation.
+
+\begin{defn}
+	A model is prone to \emph{overfitting} if it performs very well on training data but poorly on new data.
+\end{defn}
+{}\\
+An overfitted model is unable to generalize to new data because it captures features of the training data that are useless for its task. 
+%Specifically, overfitting occurs if the model or algorithm shows low bias but high variance. \\
+ Overfitting is often a result of too complicated model or for excessively training.
+ It can be prevented by using regolarization strategies, by early stopping of the training phase or by fitting multiple models and using validation or cross-validation to compare their predictive accuracies on test data.\\
+ {}\\
+ Both overfitting and underfitting lead to poor predictions on new data sets.
+ 
+ \subsubsection{Data Augmentation}
+ A good solution to alleviate the relative scarcity of the data compared to the number of parameters involved in a model is data augmentation.
+It consists in transforming the available data into new data without altering their natures. Popular augmentation methods include simple geometric transformations such as sampling, mirroring, rotating, shifting, and various photometric transformations.
+ 
+ 
+ \subsubsection{Regolarization}
+ 
+ Overfitting can be eﬀectively reduced by regularization techniques that prevent the model to fit too much the training data by adding specific terms to the loss fuction or applying strategies such as \emph{Dropout}.
+ 
+ \begin{itemize}
+ 	\item \emph{$L_p$-norm Regularization}:\\
+ 	$L_p$-norm regularization modiﬁes the error function by adding additional terms that penalize the model complexity. Formally, if the loss function is $L(\Theta,Y)$, then the regularized loss will be: $\bar{L}(\Theta,Y) =L(\Theta,Y) + \lambda R(W)$ where $R(W)$ is the regularization term, $\bar{W}$ are the parameters of the network and $\lambda$ is the regularization strength. $L_p$-norm regularization function is usually employed as $R(W)=\parallel W\parallel^p_p$.\\
+ 	 When $p ≥ 1$, the $L_1$-norm is convex, which makes the optimization easier and renders this function attractive. For p = 2, the $L_2$-norm regularization is commonly referred to as \emph{weight decay}. When p < 1, the $L_p$-norm regularization more exploits the sparsity eﬀect of the weights but conducts to non-convex function.
+ 	{}\\
+ 	\item \emph{Dropout Regolarization}:\\
+ 	Dropout is a regularization technique for reducing overfitting by preventing complex co-adaptations on training data.
+ 	It does so by “dropping out”, randomly, some unit activations in a given layer, that is setting them to zero during the forward and the backward computation.\\
+ 	More technically, at each training stage, individual artificial neurons are either dropped out of the net with probability 1-p or kept with probability p, so that a reduced network is left; incoming and outgoing edges to a dropped-out node are also removed.\\
+ 	At test time no neurons are dropped out and the entire network is computed, but the activations are reduced by a factor p to account for the missing activation during training.
+ 	Dropout can also be seen as a method of ensembling many networks sharing the same weights.
+ 	It increases the number of epochs required for training, but decreases the training time for each epoch.
+ 	{}\\
+ 	\item \emph{Early Stopping}:\\
+ 	Another way to prevent overfitting is early stopping. 
+ 	It requires to monitor the error on the validation set during the training process: the validation error normally decreases during the initial phase of training, as does the training set error. However, when the network begins to overfit the data, the error on the validation set typically begins to rise. When the validation error increases for a specified number of iterations, the training is stopped, and the weights and biases are setted at the minimum of the validation error.
+ 	Early stopping enables the model to reach the best generalization possible.
+ 	 	 
+ \end{itemize}
+
+\newpage
+\section{Probability theory and Bayesian inference}
+
+\begin{defn}
+	A \emph{distribution function} p(E) is a real function $p:S \to [0,1]$ that quantify the probability that the event E occurs in a given random phenomena, where S is the sample space of all possible events.
+\end{defn}
+The sample space can be either discrete or continuous.
+\begin{defn}
+	The \emph{mean} or \emph{expectation} $E[X]$ of a distribution function is the arithmetic average value of a random variable $X$ having that distribution:
+	$$E[X]=\int x p(x)\. dx$$
+	that is, in the discrete case
+	$$E[X]=\sum_{i} x_i p(x_i)$$
+\end{defn}
+\begin{defn}
+	The \emph{variance} $Var(X)$ of a distribution function is the expectation of the squared deviation of a random variable $X$ having that distribution to the mean of the distribution
+	$$Var(X)=E[(X-E[X])^2]$$
+\end{defn}
+\begin{defn}
+	A \emph{Gaussian distribution} is a continuous distribution having the function in this form:
+	$$p(x)=\frac{1	}{\sqrt{2\pi\omega^2}} e^{\frac{{x-\mu}^2}{2\omega^2}}$$
+	where $\mu$ is the mean and $\omega^2$ is the variance.
+\end{defn}
+\begin{defn}
+	Given two events $E_1, E_2$ the \emph{conditional probability} of $E_1$ given $E_2$, $p(E_1| E_2)$, is a measure of the probability of $E_1$ given the assumption that $E_2$ has occurred.
+\end{defn}
+
+\begin{theo}
+	Let be $E_1, E_2$ two events such as $p(E_2) \ne 0$, the \emph{Bayes'theorem} states that
+	$$p(E_1| E_2)=\frac{p(E_2|E_1)p(E_1)}{p(E_2)}$$
+\end{theo}
+(Bayes-Prince, 1763)[11]
+\subsection{Bayesian inference}
+Bayesian inference is a statistical method that uses Bayes' theorem to update the probability when more informations become availables; it is divided in two phases.
+In the first phase, before seeing any data, we define a model that expresses qualitative aspects of our knowledge such as forms of distribution functions or independence assumptions, the model will have some unknown parameters, and specify a prior distribution function for these unknown parameters that express our beliefs about which values are more or less likely.\\
+In the second phase, after seeing the data, we modify our beliefs by update distribution function of the unknown variables of the model  because of the incoming of the new informations, the data\\.
+We will denote:
+\begin{itemize}
+	\item $\Omega$: unknown parameters of the model;
+	\item D: incoming data;
+	\item $p(\Omega)$: prior distribution, the conditional probability of the parameters before seeing the data;
+	\item $p(\Omega|D)$: posterior distribution, the conditional probability of the parameters after seeing the data;
+	\item $p(D|\Omega)$: likelyhood, the conditional probability of the data given the parameters;
+	\item $p(D)$: model evidence, the distribution function of the data.	
+\end{itemize}
+Applying the Bayes'theorem it is possible to calculate the posterior distribution, using the likelyhood and the prior distribution:
+$$p(\Omega| D)=\frac{p(D|\Omega)p(\Omega)}{p(D)}$$
+where the evidence $p(D)$ rappresent the normalization term and can be calculated by marginalizing (integrating) over the parameters
+$$p(D)=\int p(D|\Omega)p(\Omega)\, d\Omega$$
+It is also possible to make predictions on new data by marginalizing over the parameters the conditional probability of the new data given the data D 
+$$p(new data|D)=\int p(new data|\Omega)p(\Omega|D)\, d\Omega$$
+
+\newpage
+\section{Bayesian Approch to neural network}
+Bayesian inference can be useful in the contest of Artificial Neural Network.\\
+We will discuss the following important features offered by this kind of approach; for more details refer to Chapter 10  of C. Bishop in [6]
+\begin{itemize}
+\item The conventional training method of error minimization arises from a particular approximation to the Bayesian approach.
+\item Regularization can be given a natural interpretation in the Bayesian framework.
+\item Bayesian methods allow the values of regularization coefficients to be selected using only the training data, without the need to use separate training and validation data. Furthermore, the Bayesian approach allows relatively large numbers of regularization coefficients to be used, which would be computationally prohibitive if their values had to be optimized using cross-validation.
+\item For regression problems, error bars, or confidence intervals, can be assigned to the predictions generated by a network.
+\item Similarly, the Bayesian approach allows different models to be compared using only the training data. More generally, it provides an objective and principled framework for dealing with the issues of model complexity which avoids many of the problems which arise when using maximum likelihood.
+\end{itemize}
+
+ We can use Bayesian inference to evaluate the posterior probability of a characteristics of a model, such as parameters, hyperparameters or regularization rates, given the training set.\\
+Let's denote as follows:
+\begin{itemize}
+	\item \textbf{W}: the parameters of a model (weights, biases and all others parameter updated during the training phase)
+	\item \textbf{H}: the hyperparameters of the model (number of layer, number of neurons in each layer and all others parameter selected comparing the results of the validation phase)
+	\item \textbf{D}: data set to feed the network
+\end{itemize}
+For a more detailed discussion, refer to [6]
+\subsection{Bayesian learning of the weights}
+
+Finding an assignment to the weights that minimizes some error function, by an optimization algorithm, is equivalent to ﬁnding a maximum of the likelihood  function , in other words ﬁnding a \textbf{W}${}^*$ that maximizes the probability of the data given those weights p(\textbf{D}|\textbf{W}${}^*$).
+Applying the Bayes Theorem to the posterior distribution over the weights after seeing data p(\textbf{D}|\textbf{W}), we obtain:
+$$p(\textbf{W}|\textbf{D})= \frac{p(\textbf{D}|\textbf{W}) p(\textbf{W})}{p(\textbf{D})}=\frac{p(\textbf{D}|\textbf{W}) p(\textbf{W})}{\int p(\textbf{D}|\textbf{W}) p(\textbf{W})\, d\textbf{W}}$$
+In the Bayesian formalism, learning the weights means changing our belief about the weights from the prior,p(\textbf{W}), to the posterior, p(\textbf{W}|\textbf{D})as a consequence of seeing the data.\\
+We first consider the prior probability distribution for the weights. This distribution should reflect any prior knowledge we have about the form of network mapping we expect to find.\\
+ In general, we can write this distribution as an exponential of the form :
+$$p(\textbf{W})=\frac{e^{-\alpha E_\textbf{W}}}{Z_\textbf{W} (\alpha)}$$
+where $\alpha$ is a hyperparameter and $Z_\textbf{W} (\alpha)$ is the normalization factor given by 
+$$Z_\textbf{W} (\alpha)= \int e^{-\alpha E_\textbf{W}}\, d\textbf{W} $$
+which ensures that $\int p(\textbf{W})\, d\textbf{W}=1$.\\
+When we consider weight decay we argue that smaller weights generalize better, so we should set $E_\textbf{W}$ to 
+$$E_\textbf{W}=\frac{1}{2} \parallel \textbf{W} \parallel^2_2=\frac{1}{2} \sum_{i} |w_i|^2$$
+With this $E_\textbf{W}$ the prior becomes a Gaussian.\\
+Just as we did for the prior, let’s consider a likelihood function of the form:
+$$p(\textbf{D}|\textbf{W})=\frac{e^{-\beta E_\textbf{D}}}{Z_\textbf{D}(\beta)}$$
+where $\beta$ is another hyperparameter and the normalization factor $Z_\textbf{D}(\beta)$ is given by
+$$Z_\textbf{D}(\beta)=\int e^{-\beta E_\textbf{D}}\, d\textbf{D}$$
+where $$\int \, d\textbf{D}=\int \, d\theta(1),...\, d\theta(T)$$, $\theta(1),...,\theta(T)$ targets of the data set.\\
+If we assume that after training the target data $\theta(1),...,\theta(T) \in \textbf{D}$ obeys a Gaussian distribution with mean $y(x, w)$, then the likelihood function is given by
+$$p(\textbf{D}|\textbf{W})=\prod_{t=1}^T p(\theta(t)|x(t),\textbf{W})=\frac{1}{Z_\textbf{D}} e^{-\frac{\beta}{2}\sum_{t=1}^{T}[y(x(t),\textbf{W})-\theta(t)]^2}$$
+Substituting $p(\textbf{D}|\textbf{W})$ and $p(\textbf{W})$ with the form defined above we obtain
+$$p(\textbf{W}|\textbf{D})=\frac{p(\textbf{D}|\textbf{W}) p(\textbf{W})}{p(\textbf{D})} = \frac{e^{-\beta E_\textbf{D}} e^{-\alpha E_\textbf{W}} }{Z_S}=\frac{e^{-S(\textbf{W})}}{Z_S}$$
+where
+$$S(\textbf{W})=\beta E_\textbf{D}+\alpha E_\textbf{W}$$
+and
+$$Z_S(\alpha,\beta)=\int e^{-\beta E_\textbf{D}-\alpha E_\textbf{W}}\, d\textbf{W}$$.
+If we want to ﬁnd the maximum a posteriori  weights, $\textbf{W}_{MP}$ (the maximum of the posterior distribution), we could minimize the negative logarithm of $p(\textbf{W}|\textbf{D})$, which is equivalent to minimizing
+$$S(\textbf{W})= \frac{\beta}{2}\sum_{t=1}^{T}[y(x(t),\textbf{W})-\theta(t)]^2 + \frac{\alpha}{2} \sum_{i} |w_i|^2$$
+Note that this is the quadratic error function minimized with weight decay; the ratio $\alpha / \beta$ determines the amount we penalize large weights.
+
+\subsection{Distribution over the outputs}
+ In the Bayesian formalism a 'trained' network is described in terms of the posterior probability distribution of weight values. If we present a new input vector to such a network, then the distribution of weights gives rise to a distribution of network outputs 
+Once we have the posterior of the weights, we can calculate the distribution of the outputs marginilizing over the weights.
+$$p(y|X, \textbf{D})=\int p(y|X, \textbf{W}) p(\textbf{W}|\textbf{D})\, d\textbf{W}$$
+
+In general, we require an approximation to evaluate this integral.
+If we approximate $p(\textbf{W}|\textbf{D})$ as a sufﬁciently narrow Gaussian, we arrive at a gaussian distribution over the outputs of the network
+$$p(y|X, \textbf{D})\approx\frac{1}{2 \pi \sigma^{1/2}_y} e^{- \frac{{(y-y_{MP})^2}{2 \sigma^2_y}} $$
+The mean $y_{MP}$ is the maximum a posteriori network output and $$\sigma^2_y=\beta^{-1}+ {}^Tg A^{-1}g$$ is the variance, where A is the Hessian of $S(X)$ and $g= \nabla_{\textbf{W}} y|_\textbf{W}_{MP}$.\\
+We can interpret the standard deviation $\sigma_y$ of the predictive distribution for y as an error bar on the mean value $y_{MP}$. This error bar has two contributions, one arising from the intrinsic noise on the target data, corresponding to the first term, and one arising from the width of the posterior distribution of the network weights, corresponding to the second term. 
+\subsection{Hyperparameters}
+Until now, we have assumed that the hyperparameters are  known a priori, but in practice we will almost never know the correct form of the prior.
+We could ﬁnd their maximum a posteriori values in an  iterative optimization procedure where we alternate between optimizing $\textbf{W}_{MP}$ and the hyperparameters $\alpha_{MP}$ and $\beta_{MP}$, or we can use a Bayesian approach and marginalize over the hyperparameters $\alpha$ and $\beta$
+$$p(\textbf{W}|\textbf{D})= \iint p(\textbf{W}, \alpha, \beta | \textbf{D})\. d\alpha, d\beta = \frac{1}{p(\textbf{D})} \iint p(\textbf{D}| \textbf{W}, \beta) p(\textbf{W}| \alpha) p(\alpha) p(\beta)\, d \alpha, d\beta$$
+where we have used Bayes' theorem and the facts that $p(\textbf{D}|\textbf{W}, \alpha, \beta)= p(\textbf{D}|\textbf{W}, \beta)$ since this is the likelihood term and is independent of $\alpha$ and similarly $p(\textbf{W}| \alpha, \beta)= p(\textbf{W}| \alpha)$  since this is the prior over the weights and hence is independent of $\beta$. Also we  we have taken $p(\alpha, \beta)= p(\alpha) p(\beta)$ on the assumption that the two hyperparameters are independent.\\
+
+\subsection{Model comparison}
+ Using Bayesian methods we can also compare different models. As we will see soon, the Bayesian formalism automatically penalizes highly complex models and so is able to pick out an optimal model without resorting to the use of independent data as in methods such as cross-validation.\\
+ Consider a set of candidate models $\textbf{H}_i$ that could include  neural networks with different numbers of hidden units, RBF networks and other models; applying the Bayes’theorem to compute the posterior  distribution over models, then pick the model with the largest posterior
+ $$p(\textbf{H}_i|\textbf{D})= \frac{p(\textbf{D}|\textbf{H}_i) p(\textbf{H}_i)}{p(\textbf{D})}$$
+ where the term $p(\textbf{D}|\textbf{H}_i)$ is called the \emph{evidence} for $\textbf{H}_i$ and is given by
+ $$p(\textbf{D}|\textbf{H}_i)= \int p(\textbf{D}|\textbf{W}, \textbf{H}_i)p(\textbf{W}|\textbf{H}_i)\, d\textbf{W}$$ 
+ The evidence term balances between ﬁtting the data well  and avoiding overly complex models.\\
+ Now consider a single weight parameter w. If the posterior distribution is sharply peaked in weight space around the most probable value $\textbf{W}_{MP}$ then we can approximate the integral by the value at the maximum times the width $\Delta \textbf{W}_{posterior}$ of the peak
+  $$p(\textbf{D}|\textbf{H}_i) \approx p(\textbf{D}|\textbf{W}_{MP}, \textbf{H}_i)p(\textbf{W}_{MP}|\textbf{H}_i)\Delta \textbf{W}_{posterior}$$
+If we take the prior to be uniform over some large interval $\Delta \textbf{W}_{prior}$ then we obtain
+$$p(\textbf{D}|\textbf{H}_i) \approx p(\textbf{D}|\textbf{W}_{MP}, \textbf{H}_i) (\frac{\Delta \textbf{W}_{posterior}}{\Delta \textbf{W}_{prior}})$$
+The first term on the right-hand side is the likelihood evaluated for the most probable weight values, while the second term, which is referred to as an Occam factor and which has value < 1, penalizes the network for having this particular posterior distribution of weights.\\
+For a model with many parameters, each will generate a similar Occam factor and so the evidence will be correspondingly reduced. Similarly a model in which the parameters have to be finely tuned will also be penalized with a small Occam factor. A model which has a large best-fit likelihood will receive a large contribution to the evidence. However, if the model is also very complex then the Occam factor will be very small. The model with the largest evidence will be determined by the balance between needing large likelihood (to fit the data well) and needing a relatively large Occam factor (so that the model is not too complex).
+ 
+ 
+\newpage
+\begin{thebibliography}{100}
+	\bibitem{rif1}Warren McCulloch and Walter Pitts,  \textit{A Logical Calculus of Ideas Immanent in Nervous Activity} (1943)
+	\bibitem{rif2} Frank Rosenblatt, \textit{The Perceptron: a Perceiving and Recognizing Automaton} (1957)
+	\bibitem{ri3} Marvin Minsky and Paper Seymour, \textit{Perceptrons: An Introduction to Computational Geometry} (1969)
+	\bibitem{rif4} Richard Lippmann, \textit{An Introduction to Computing with Neural Nets} (1987)
+	\bibitem{rif5} Alan Lapedes and Robert Farber, \textit{How Neural Nets Work} (1988) 
+	\bibitem{rif6}Christopher M. Bishop, \textit{Neural Networks for Pattern Recognition} (1995)
+	\bibitem{rif7} Henry J. Kelley, \textit{Gradient Theory of Optimal Flight Paths} (1960)
+	\bibitem{rif8} Arthur E. Bryson, \textit{ A Gradient Method for Optimizing Multi-stage Allocation Processes} (1961)
+	\bibitem{rif9}  Paul Werbos, \textit{Applications of Advances in Nonlinear Sensitivity Analysis. In System Modeling and Optimization} (1982) 
+	\bibitem{rif10} Seppo Linnainmaa, \textit{Taylor expansion of the accumulated rounding error} (1976)
+	%da controllare
+	\bibitem{rif11} Thomas Bayes and Richard Price, \textit{An Essay towards solving a Problem in the Doctrine of Chance. By the late Rev. Mr. Bayes, communicated by Mr. Price, in a letter to John Canton} (1763)
+	\bibitem{rif12} David J. C. MacKay, \textit{Information-based objective functions for active data selection} (1992) 
+	\bibitem{rif13 }David J. C. MacKay, \textit{Bayesian methods for backpropagation networks.} (1994)
+	\bibitem{rif14} Radford M. Neal, \textit{Bayesian Learning for Neural Networks} (1994) 
+	\bibitem{rif15} Ian Goodfellow, Yoshua Bengio and Aaron Courville, \textit{Deep Learning Book} (2016)
+\end{thebibliography}
+

@@ -1,0 +1,143 @@
+\documentclass[openany,12pt,english]{book}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx,color}
+\usepackage{bbold}
+%\usepackage{fullpage}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={210mm,297mm},
+ left=30mm,
+ right=25mm,
+ top=25mm,
+ bottom=25mm,
+ }
+\usepackage{amsmath}
+%\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+\usepackage[hyphens]{url}
+\usepackage{booktabs}
+\usepackage{array}
+%\usepackage{multirow}
+\usepackage{listings}
+%\usepackage[chapter]{algorithm}
+\usepackage{algorithmic}
+%\usepackage{algpseudocode}
+\usepackage{amsfonts}
+\usepackage{longtable,enumitem}
+\usepackage{tikz}
+%\usepackage{indentfirst}
+\usepackage{mathrsfs}
+\urlstyle{same}
+\usepackage{hyperref}
+%\usepackage[sorting=none, backend=biber]{biblatex} % load the package
+%\addbibresource{biblio.bib} % add a bib-reference file
+
+\usepackage{caption}
+%\usepackage[within=none]{newfloat}
+%\usepackage{times}
+%\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{verbatim}
+
+%\defbibheading{cartaceo}{\subsection*{Manuali cartacei}}
+%\defbibheading{web}{\subsection*{Siti Web consultati}}
+
+%\usepackage[graphics]{realboxes}
+
+\usepackage[resetlabels]{multibib} 
+\newcites{web}{Siti Web consultati}
+
+\linespread{1.1}
+\graphicspath{{./images//}}
+%\theoremstyle{plain}
+\newtheorem{theo}{Theorem}[section]
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{cor}[theo]{Corollary} 
+\newtheorem{lem}[theo]{Lemma}
+\newtheorem{prop}[theo]{Proposition}
+\newtheorem{cl}{Claim}[theo]
+%\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{oss}[theo]{Observation}
+%\theoremstyle{remark}
+\newtheorem{rmk}{Remark}[section]
+\newtheorem{cst}{Costruzione}[section]
+\newtheorem{ex}{Esempio}[section]
+\newtheorem{crp}{Crittosistema}
+\setcounter{secnumdepth}{6}
+\setcounter{tocdepth}{6}
+\newtheorem{de}{Definizione}[chapter]
+%\usepackage[latin1]{inputenc}
+%\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+%\usepackage{tkz-graph}
+\usepackage{verbatim}
+\usetikzlibrary{arrows}
+
+\usepackage[english]{babel}
+%\usepackage[english]{babel}
+\usepackage{makeidx,multicol}
+\usepackage{tabularx}
+\newcommand{\RR}{\mathbb{R}}
+%\newcommand{\FF}{\mathbb{F}}
+%\newcommand{\ZZ}{\mathbb{Z}}
+%\newcommand{\KK}{\mathbb{K}}
+%\newcommand{\Fp}{\mathbb{F}_p}
+%\newcommand{\ps}[2]{\langle #1,#2 \rangle}
+
+\newcommand{\NP}{\mbox{\bf NP}}
+\newcommand{\PP}{\mbox{\bf P}}
+\newcommand{\DT}{\mbox{\bf DTIME}}
+\binoppenalty=9999
+\relpenalty=9999
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+		\lstset{frame=tb,
+		  basicstyle=renewcommand\footnotesiz{
+\fontsize{10pt}\selectfont}
+		  tabsize=2,
+		  language=Mathematica,
+		  captionpos=b,
+		  showstringspaces=false,
+		  numbers=left,
+		  numberstyle=\tiny\color{gray},
+		  columns=fullflexible
+		}
+		
+		\renewcommand{\lstlistingname}{Code}
+		\renewcommand{\lstlistlistingname}{List of Codes}
+\pagestyle{plain}
+\title{\textbf{UNIVERSIT\`{A} DEGLI STUDI ROMA 3} \\ 
+	\vspace{1cm}
+	% \includegraphics{Logo_Roma_Tre} \\
+	\vspace{0.5cm}
+	\textbf{Department of Mathematics and Physics} \\
+	\vspace{0.5cm}
+	Graduate course in Mathematics \\ 
+	\vspace{0.5cm}
+	\textbf{Artificial Neural Networks} \\
+	\vspace{1cm}
+	\textbf{Chapter 0}}
+
+\author{Supervisor\\   
+	Professor Marco Pedicini\\ 
+	\and
+	Candidate \\
+	Matteo Causio\\
+	\vspace{0.5cm}}
+\date{\textbf{Academic year 2016/2017}}
+\begin{document}
+	
+	\maketitle
+	\tableofcontents
+	\thispagestyle{empty}
+	\include{ChapterZero_contents}
+%\printindex
+\clearpage
+%\nocite{*}
+%\bibliographystyle{plain}
+%\bibliography{biblio}
+%\addcontentsline{toc}{chapter}{Bibliografia}
+
+
+\end{document}
